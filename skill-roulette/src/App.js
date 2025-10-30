@@ -1,8 +1,5 @@
 import React from "react";
-import LoginPage from "./components/LoginPage.jsx";
-
-function App() {
+import LoginPage from "./components/LoginPage";
+export default function App() {
   return <LoginPage />;
 }
-
-export default App;
