@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { signInWithEmail, signUpWithEmail } from "../lib/dbHelpers";
+import '../styles/LoginPage.css';
 
 export default function LoginPage() {
   const [mode, setMode] = useState("signin"); // "signin" or "signup"
@@ -34,76 +35,85 @@ export default function LoginPage() {
 
   return (
     <div className="auth-container">
-
-      {mode === "signin" && (
-        <div className="auth-box">
-          <h2>Sign In</h2>
-
-          <form onSubmit={handleSignIn}>
-            <input
-              type="email"
-              placeholder="Email"
-              required
-              onChange={(e) => setEmail(e.target.value)}
-            />
-
-            <input
-              type="password"
-              placeholder="Password"
-              required
-              onChange={(e) => setPassword(e.target.value)}
-            />
-
-            {error && <p className="error-text">{error}</p>}
-
-            <button type="submit">Sign In</button>
-          </form>
-
-          <p className="toggle-text">
-            Don’t have an account?{" "}
-            <span onClick={() => setMode("signup")}>Create one</span>
-          </p>
+      <div className="auth-wrapper">
+        <div className="logo-container">
+          <img src="/elements/SR_logo.png" alt="Skill Roulette Logo" className="auth-logo" />
         </div>
-      )}
 
-      {mode === "signup" && (
-        <div className="auth-box">
-          <h2>Create Account</h2>
+        {mode === "signin" && (
+          <div className="auth-box">
+            <h2>Sign In</h2>
 
-          <form onSubmit={handleSignUp}>
-            <input
-              type="text"
-              placeholder="Display Name"
-              required
-              onChange={(e) => setDisplayName(e.target.value)}
-            />
+            <form onSubmit={handleSignIn}>
+              <input
+                type="email"
+                placeholder="Email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
 
-            <input
-              type="email"
-              placeholder="Email"
-              required
-              onChange={(e) => setEmail(e.target.value)}
-            />
+              <input
+                type="password"
+                placeholder="Password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
 
-            <input
-              type="password"
-              placeholder="Password"
-              required
-              onChange={(e) => setPassword(e.target.value)}
-            />
+              {error && <p className="error-text">{error}</p>}
 
-            {error && <p className="error-text">{error}</p>}
+              <button type="submit">Sign In</button>
+            </form>
 
-            <button type="submit">Create Account</button>
-          </form>
+            <p className="toggle-text">
+              Don't have an account?{" "}
+              <span onClick={() => setMode("signup")}>Create one</span>
+            </p>
+          </div>
+        )}
 
-          <p className="toggle-text">
-            Already have an account?{" "}
-            <span onClick={() => setMode("signin")}>Sign in</span>
-          </p>
-        </div>
-      )}
+        {mode === "signup" && (
+          <div className="auth-box">
+            <h2>Create Account</h2>
 
+            <form onSubmit={handleSignUp}>
+              <input
+                type="text"
+                placeholder="Display Name"
+                required
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+              />
+
+              <input
+                type="email"
+                placeholder="Email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+
+              <input
+                type="password"
+                placeholder="Password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+
+              {error && <p className="error-text">{error}</p>}
+
+              <button type="submit">Create Account</button>
+            </form>
+
+            <p className="toggle-text">
+              Already have an account?{" "}
+              <span onClick={() => setMode("signin")}>Sign in</span>
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
