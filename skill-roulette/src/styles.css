@@ -82,3 +82,52 @@ header {
     background: #fff;
     color: #162938;
 }
+
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.auth-box {
+  width: 380px;
+  padding: 40px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
+}
+
+.auth-box input {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.auth-box button {
+  width: 100%;
+  padding: 12px;
+  background: #162938;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.error-text {
+  color: red;
+  font-size: 0.85em;
+}
+
+.toggle-text {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.toggle-text span {
+  cursor: pointer;
+  font-weight: bold;
+  color: #162938;
+}

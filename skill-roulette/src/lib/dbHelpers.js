@@ -9,7 +9,7 @@
 //
 // NOTE: This assumes you already have `supabaseClient.js` that exports
 //   `export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)`
-import { supabase } from "../supabaseClient";
+import  supabase  from "../supabaseClient";
 
 /* --------------------------------------------------------------------------
  * SECTION 1: AUTH & PROFILES

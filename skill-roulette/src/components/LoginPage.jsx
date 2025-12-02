@@ -1,64 +1,109 @@
 import React, { useState } from "react";
-import "../styles.css";
+import { signInWithEmail, signUpWithEmail } from "../lib/dbHelpers";
 
-const LoginPage = () => {
+export default function LoginPage() {
+  const [mode, setMode] = useState("signin"); // "signin" or "signup"
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [error, setError] = useState("");
 
-  const handleSubmit = async (e) => {
+  async function handleSignIn(e) {
     e.preventDefault();
+    setError("");
 
-    const response = await fetch("http://localhost:5000/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+    const { user, error } = await signInWithEmail({ email, password });
+    if (error) return setError(error.message);
+
+    window.location.href = "/";
+  }
+
+  async function handleSignUp(e) {
+    e.preventDefault();
+    setError("");
+
+    const { user, error } = await signUpWithEmail({
+      email,
+      password,
+      displayName
     });
+    if (error) return setError(error.message);
 
-    const data = await response.json();
-    console.log(data);
-  };
+    window.location.href = "/";
+  }
 
   return (
-    <div>
-      <header>
-        <img src="elements/SR_logo.png" className="logo" alt="Skill Roulette Logo" />
-        <nav className="navigation">
-          <a href="#">Home</a>
-          <a href="#">About</a>
-          <button className="btnLogin-popup">Login</button>
-        </nav>
-      </header>
+    <div className="auth-container">
 
-      <div className="wrapper">
-        <div className="form-box login">
-          <h2>Login</h2>
-          <form onSubmit={handleSubmit}>
-            <div className="input-box">
-              <span className="icon"></span>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-              <label>Email</label>
-            </div>
-            <div className="input-box">
-              <span className="icon"></span>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-              <label>Password</label>
-            </div>
-            <button type="submit" className="btn">Login</button>
+      {mode === "signin" && (
+        <div className="auth-box">
+          <h2>Sign In</h2>
+
+          <form onSubmit={handleSignIn}>
+            <input
+              type="email"
+              placeholder="Email"
+              required
+              onChange={(e) => setEmail(e.target.value)}
+            />
+
+            <input
+              type="password"
+              placeholder="Password"
+              required
+              onChange={(e) => setPassword(e.target.value)}
+            />
+
+            {error && <p className="error-text">{error}</p>}
+
+            <button type="submit">Sign In</button>
           </form>
+
+          <p className="toggle-text">
+            Don’t have an account?{" "}
+            <span onClick={() => setMode("signup")}>Create one</span>
+          </p>
         </div>
-      </div>
+      )}
+
+      {mode === "signup" && (
+        <div className="auth-box">
+          <h2>Create Account</h2>
+
+          <form onSubmit={handleSignUp}>
+            <input
+              type="text"
+              placeholder="Display Name"
+              required
+              onChange={(e) => setDisplayName(e.target.value)}
+            />
+
+            <input
+              type="email"
+              placeholder="Email"
+              required
+              onChange={(e) => setEmail(e.target.value)}
+            />
+
+            <input
+              type="password"
+              placeholder="Password"
+              required
+              onChange={(e) => setPassword(e.target.value)}
+            />
+
+            {error && <p className="error-text">{error}</p>}
+
+            <button type="submit">Create Account</button>
+          </form>
+
+          <p className="toggle-text">
+            Already have an account?{" "}
+            <span onClick={() => setMode("signin")}>Sign in</span>
+          </p>
+        </div>
+      )}
+
     </div>
   );
-};
-
-export default LoginPage;
+}
