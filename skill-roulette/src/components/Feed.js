@@ -18,7 +18,7 @@ const Feed = () => {
       <Post
         username="evan"
         tag="@ytka"
-        content="Mind if a white boy speak a little Espanol?."
+        content="Mind if a white boy speak a little Espanol?"
       />
     </div>
   );

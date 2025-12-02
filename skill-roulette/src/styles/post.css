@@ -1,0 +1,34 @@
+/* src/styles/post.css */
+.post {
+    background: #f9f9f9;
+    padding: 1rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  
+  .post-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+  
+  .post-user {
+    font-size: 0.9rem;
+  }
+  
+  .tag {
+    color: #555;
+    margin-left: 0.5rem;
+  }
+  
+  .post-content p {
+    margin: 0.5rem 0;
+  }
+  
+  .post-image {
+    margin-top: 0.5rem;
+    max-width: 100%;
+    border-radius: 8px;
+  }
+  

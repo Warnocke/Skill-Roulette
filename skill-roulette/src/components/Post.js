@@ -1,25 +1,18 @@
+// src/components/Post.js
 import React from "react";
+import "./../styles/post.css";
 
-const Post = ({ username, tag, content }) => {
+const Post = ({ username, tag, content, image }) => {
   return (
-    <div className="post-card">
-      <div className="post-avatar">
-        <img src="https://via.placeholder.com/48" alt="avatar" />
+    <div className="post">
+      <div className="post-header">
+        <div className="post-user">
+          <strong>{username}</strong> <span className="tag">{tag}</span>
+        </div>
       </div>
-
       <div className="post-content">
-        <div className="post-header">
-          <span className="post-username">{username}</span>
-          <span className="post-tag">{tag}</span>
-        </div>
-
-        <p className="post-text">{content}</p>
-
-        <div className="post-actions">
-          <button>💬</button>
-          <button>🔁</button>
-          <button>❤️</button>
-        </div>
+        <p>{content}</p>
+        {image && <img src={image} alt="post" className="post-image" />}
       </div>
     </div>
   );
