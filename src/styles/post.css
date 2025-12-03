@@ -1,34 +1,113 @@
 /* src/styles/post.css */
 .post {
-    background: #f9f9f9;
-    padding: 1rem;
-    border-radius: 10px;
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  padding: 1.5rem;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.post::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #667eea, #764ba2, #48bb78);
+}
+
+.post:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+}
+
+.post-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.post-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 1rem;
+  border: 3px solid #e2e8f0;
+  transition: border-color 0.3s ease;
+}
+
+.post:hover .post-avatar {
+  border-color: #667eea;
+}
+
+.post-user-info {
+  flex: 1;
+}
+
+.post-user {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0 0 0.25rem 0;
+}
+
+.post-time {
+  font-size: 0.875rem;
+  color: #718096;
+  margin: 0;
+}
+
+.post-content {
+  margin: 1rem 0;
+}
+
+.post-content p {
+  margin: 0;
+  line-height: 1.6;
+  color: #4a5568;
+  font-size: 1rem;
+}
+
+.post-image {
+  width: 100%;
+  max-height: 400px;
+  border-radius: 12px;
+  object-fit: cover;
+  margin-top: 1rem;
+  border: 1px solid #e2e8f0;
+  transition: transform 0.3s ease;
+}
+
+.post-image:hover {
+  transform: scale(1.02);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .feed-container {
+    padding: 0.5rem;
+  }
+  
+  .challenge-card,
+  .new-post-card,
+  .community-feed {
+    padding: 1.5rem;
     margin-bottom: 1rem;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   }
   
-  .post-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 0.5rem;
+  .post {
+    padding: 1rem;
   }
   
-  .post-user {
-    font-size: 0.9rem;
+  .post-avatar {
+    width: 40px;
+    height: 40px;
   }
-  
-  .tag {
-    color: #555;
-    margin-left: 0.5rem;
-  }
-  
-  .post-content p {
-    margin: 0.5rem 0;
-  }
-  
-  .post-image {
-    margin-top: 0.5rem;
-    max-width: 100%;
-    border-radius: 8px;
-  }
-  
+}
