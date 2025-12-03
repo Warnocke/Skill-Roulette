@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { signInWithEmail, signUpWithEmail } from "../lib/dbHelpers";
 import '../styles/LoginPage.css';
 
@@ -8,6 +9,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   async function handleSignIn(e) {
     e.preventDefault();
@@ -16,22 +18,22 @@ export default function LoginPage() {
     const { user, error } = await signInWithEmail({ email, password });
     if (error) return setError(error.message);
 
-    window.location.href = "/";
-  }
+    navigate("/feed");   // <-- redirect after login
+}
 
-  async function handleSignUp(e) {
-    e.preventDefault();
-    setError("");
+async function handleSignUp(e) {
+  e.preventDefault();
+  setError("");
 
-    const { user, error } = await signUpWithEmail({
-      email,
-      password,
-      displayName
-    });
-    if (error) return setError(error.message);
+  const { user, error } = await signUpWithEmail({
+    email,
+    password,
+    displayName
+  });
+  if (error) return setError(error.message);
 
-    window.location.href = "/";
-  }
+  navigate("/feed");   // <-- redirect
+}
 
   return (
     <div className="auth-container">
