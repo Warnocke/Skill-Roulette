@@ -1,3 +1,11 @@
+// // Uncomment the following lines to use the DbHelpersTestPage instead of LoginPage
+// /*
+// import DbHelpersTestPage from "./dev/DbHelpersTestPage";
+
+// export default function App() {
+// return <DbHelpersTestPage />;
+// }
+// */
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LoginPage from "./components/LoginPage";
