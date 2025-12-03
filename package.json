@@ -2,7 +2,7 @@
   "name": "skill-roulette",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://evanwarnock.github.io/skill-Roulette/",
+  "homepage": "https://warnocke.github.io/Skill-Roulette/",
   "dependencies": {
     "@supabase/supabase-js": "^2.86.0",
     "@testing-library/dom": "^10.4.1",
