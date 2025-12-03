@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/skill-roulette/static/css/main.620f56be.css",
+    "main.js": "/skill-roulette/static/js/main.78b0e434.js",
+    "static/js/453.847f6892.chunk.js": "/skill-roulette/static/js/453.847f6892.chunk.js",
+    "index.html": "/skill-roulette/index.html",
+    "main.620f56be.css.map": "/skill-roulette/static/css/main.620f56be.css.map",
+    "main.78b0e434.js.map": "/skill-roulette/static/js/main.78b0e434.js.map",
+    "453.847f6892.chunk.js.map": "/skill-roulette/static/js/453.847f6892.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.620f56be.css",
+    "static/js/main.78b0e434.js"
+  ]
+}
