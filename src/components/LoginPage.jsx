@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { signInWithEmail, signUpWithEmail } from "../lib/dbHelpers";
+import { useAuth } from "../contexts/Auth";
 import '../styles/LoginPage.css';
 
 export default function LoginPage() {
+  const { login } = useAuth();
   const [mode, setMode] = useState("signin"); // "signin" or "signup"
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,18 +20,21 @@ export default function LoginPage() {
     const { user, error } = await signInWithEmail({ email, password });
     if (error) return setError(error.message);
 
-    navigate("/feed");   // <-- redirect after login
-}
+    // Save user info in context
+    login({ displayName: user.displayName, email: user.email });
 
-async function handleSignUp(e) {
-  e.preventDefault();
-  setError("");
+    navigate("/feed");   // redirect after login
+  }
 
-  const { user, error } = await signUpWithEmail({
-    email,
-    password,
-    displayName
-  });
+  async function handleSignUp(e) {
+    e.preventDefault();
+    setError("");
+
+    const { user, error } = await signUpWithEmail({
+      email,
+      password,
+      displayName
+    });
   if (error) return setError(error.message);
 
   navigate("/feed");   // <-- redirect
