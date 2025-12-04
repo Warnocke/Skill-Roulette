@@ -31,6 +31,10 @@ import {
   addComment,
   getCommentsForPost,
   deleteComment,
+  
+  // Section 5: Avatar Upload
+  uploadAvatarImage,
+  getAvatarPublicUrl,
 } from "../lib/dbHelpers";
 
 function DbHelpersTestPage() {
@@ -41,6 +45,7 @@ function DbHelpersTestPage() {
   const [testPassword, setTestPassword] = useState("Test1234!");
   const [displayName, setDisplayName] = useState("Skill Roulette Tester");
   const [bio, setBio] = useState("CS student testing dbHelpers.");
+  const [avatarFile, setAvatarFile] = useState(null);
 
   // Prompts state
   const [todayPrompts, setTodayPromptsState] = useState([]);
@@ -324,6 +329,64 @@ function DbHelpersTestPage() {
     addLog("deleteComment (first comment)", { success, error, firstComment });
   }
 
+  // ===== Avatar / Profile Picture Tests =====
+
+  function handleAvatarFileChange(e) {
+    const file = e.target.files?.[0] || null;
+    setAvatarFile(file);
+    if (file) {
+      addLog("avatarFileSelected", {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+      });
+    } else {
+      addLog("avatarFileSelected", {
+        error: "No file selected",
+      });
+    }
+  }
+
+  async function handleUploadAvatarImage() {
+    if (!avatarFile) {
+      addLog("uploadAvatarImage", {
+        error: "No avatar file selected. Please choose an image first.",
+      });
+      return;
+    }
+
+    const { path, profile, error } = await uploadAvatarImage({ file: avatarFile });
+
+    addLog("uploadAvatarImage", {
+      path,
+      profile,
+      error,
+    });
+
+    if (!error && path) {
+      const publicUrl = getAvatarPublicUrl(path);
+      addLog("uploadAvatarImage_publicUrl", {
+        publicUrl,
+      });
+    }
+  }
+
+  async function handleGetProfileWithAvatar() {
+    const { profile, error } = await getCurrentUserProfile();
+
+    let avatarPublicUrl = null;
+    if (profile?.avatar_url) {
+      avatarPublicUrl = getAvatarPublicUrl(profile.avatar_url);
+    }
+
+    addLog("getCurrentUserProfile_withAvatar", {
+      profile,
+      avatarPublicUrl,
+      error,
+    });
+  }
+
+
   // ------------------------------------------------------------------------
 
   return (
@@ -465,6 +528,37 @@ function DbHelpersTestPage() {
         </div>
       </section>
 
+      {/* AVATAR UPLOAD TESTS ---------------------------------------------- */}
+      <section
+        style={{
+          border: "1px solid #ccc",
+          padding: "1rem",
+          marginTop: "1rem",
+        }}
+      >
+        <h2>Avatar / Profile Picture Tests</h2>
+        <p>
+          1) Log in with a test user. 2) Choose an image file. 3) Upload avatar. 4)
+          Get profile to verify avatar URL.
+        </p>
+
+        <div style={{ marginBottom: "0.5rem" }}>
+          <label>
+            Avatar image:
+            <input type="file" accept="image/*" onChange={handleAvatarFileChange} />
+          </label>
+        </div>
+
+        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+          <button onClick={handleUploadAvatarImage}>
+            Upload Avatar Image
+          </button>
+          <button onClick={handleGetProfileWithAvatar}>
+            Get Current Profile (with avatar)
+          </button>
+        </div>
+      </section>
+
       {/* LOG --------------------------------------------------------------- */}
       <section>
         <h2>Log</h2>
@@ -493,6 +587,7 @@ function DbHelpersTestPage() {
           ))}
         </div>
       </section>
+        
     </div>
   );
 }

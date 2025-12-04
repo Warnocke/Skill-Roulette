@@ -1049,3 +1049,112 @@ export async function deleteComment({ commentId }) {
 
   return { success: !error, error };
 }
+
+// ===============================
+//  AVATARS / PROFILE PICTURES
+// ===============================
+
+/**
+ * Upload a new avatar image for the current authenticated user.
+ *
+ * Writes the file into the `avatars` storage bucket at:
+ *   `${user.id}/${ISO_TIMESTAMP}.${ext}`
+ * and then updates `profiles.avatar_url` with that storage path.
+ *
+ * INPUT:
+ *   params: {
+ *     file: File   // image file from an <input type="file" />
+ *   }
+ *
+ * RETURN:
+ *   Promise<{
+ *     path: string | null,          // storage path inside `avatars` bucket
+ *     profile: object | null,       // updated profile row (or null on error)
+ *     error: PostgrestError | AuthError | StorageApiError | Error | null
+ *   }>
+ *
+ * NOTES:
+ *   - Requires the user to be authenticated (uses auth.getUser()).
+ *   - Requires Storage RLS policies that allow:
+ *       INSERT on storage.objects where bucket_id = 'avatars' for role 'authenticated'.
+ *   - Also assumes `updateCurrentUserProfile` will update profiles.avatar_url.
+ *   - `path` is NOT a full URL; use getAvatarPublicUrl(path) to display the image.
+ *
+ * USAGE:
+ *   const file = fileInput.files[0];
+ *   const { path, profile, error } = await uploadAvatarImage({ file });
+ *   if (!error && path) {
+ *     const publicUrl = getAvatarPublicUrl(path);
+ *     // e.g. setAvatarUrl(publicUrl) or update UI
+ *   }
+ */
+export async function uploadAvatarImage({ file }) {
+  if (!file) {
+    return { path: null, profile: null, error: new Error("No file provided") };
+  }
+
+  const { user, error: authError } = await getCurrentUser();
+  if (authError || !user) {
+    return {
+      path: null,
+      profile: null,
+      error: authError || new Error("No authenticated user"),
+    };
+  }
+
+  const userId = user.id;
+  const ext = (file.name && file.name.split(".").pop()) || "jpg";
+  const safeExt = ext.toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+
+  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+  const fileName = `${timestamp}.${safeExt}`;
+  const filePath = `${userId}/${fileName}`;
+
+  const { data, error: uploadError } = await supabase.storage
+    .from("avatars")
+    .upload(filePath, file, {
+      upsert: true,
+    });
+
+  if (uploadError) {
+    return { path: null, profile: null, error: uploadError };
+  }
+
+  const { profile, error: profileError } = await updateCurrentUserProfile({
+    avatarUrl: filePath,
+  });
+
+  return {
+    path: filePath,
+    profile: profile || null,
+    error: profileError || null,
+  };
+}
+
+/**
+ * Convert an avatar storage path into a public URL.
+ *
+ * INPUT:
+ *   path: string | null
+ *     - The value stored in profiles.avatar_url (e.g. "user-id/2025-12-04T18-20-10-123Z.jpg").
+ *
+ * RETURN:
+ *   string | null
+ *     - Public URL that can be used directly in <img src={...} />, or null if no path.
+ *
+ * NOTES:
+ *   - Uses Supabase Storage `getPublicUrl` on the `avatars` bucket.
+ *   - Requires a SELECT policy on storage.objects where bucket_id = 'avatars'
+ *     for the 'public' role (or the bucket marked as public) so the URL is actually readable.
+ *   - This helper does NOT validate that the file exists; it just builds the URL.
+ *
+ * USAGE:
+ *   const { profile } = await getCurrentUserProfile();
+ *   const avatarUrl = getAvatarPublicUrl(profile?.avatar_url);
+ *   // <img src={avatarUrl} /> if avatarUrl is non-null
+ */
+export function getAvatarPublicUrl(path) {
+  if (!path) return null;
+  const { data } = supabase.storage.from("avatars").getPublicUrl(path);
+  return data?.publicUrl || null;
+}
