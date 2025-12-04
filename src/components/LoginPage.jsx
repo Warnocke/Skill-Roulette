@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { signInWithEmail, signUpWithEmail } from "../lib/dbHelpers";
+import { 
+  signInWithEmail, 
+  signUpWithEmail, 
+  getCurrentUserProfile 
+} from "../lib/dbHelpers";
 import { useAuth } from "../contexts/Auth";
 import Logo from "./Logo";
 import '../styles/LoginPage.css';
@@ -23,7 +27,7 @@ export default function LoginPage() {
 
     // Save user info in context
     login({ displayName: user.displayName, email: user.email });
-
+    await getCurrentUserProfile();
     navigate("/feed");   // redirect after login
   }
 
@@ -38,6 +42,7 @@ export default function LoginPage() {
     });
   if (error) return setError(error.message);
 
+  await getCurrentUserProfile();
   navigate("/feed");   // <-- redirect
 }
 
