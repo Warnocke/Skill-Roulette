@@ -1049,3 +1049,70 @@ export async function deleteComment({ commentId }) {
 
   return { success: !error, error };
 }
+
+// ===============================
+//  AVATARS / PROFILE PICTURES
+// ===============================
+
+/**
+ * Uploads a new avatar image for the current user to the `avatars` bucket.
+ * - Uses path: `${user.id}/${timestamp}.${ext}`
+ * - Updates `profiles.avatar_url` with that path.
+ *
+ * @param {File} file - The image file selected from an <input type="file" />
+ * @returns {Promise<{ path: string | null, profile: object | null, error: any }>}
+ */
+export async function uploadAvatarImage({ file }) {
+  if (!file) {
+    return { path: null, profile: null, error: new Error("No file provided") };
+  }
+
+  const { user, error: authError } = await getCurrentUser();
+  if (authError || !user) {
+    return {
+      path: null,
+      profile: null,
+      error: authError || new Error("No authenticated user"),
+    };
+  }
+
+  const userId = user.id;
+  const ext = (file.name && file.name.split(".").pop()) || "jpg";
+  const safeExt = ext.toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+
+  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+  const fileName = `${timestamp}.${safeExt}`;
+  const filePath = `${userId}/${fileName}`;
+
+  const { data, error: uploadError } = await supabase.storage
+    .from("avatars")
+    .upload(filePath, file, {
+      upsert: true,
+    });
+
+  if (uploadError) {
+    return { path: null, profile: null, error: uploadError };
+  }
+
+  const { profile, error: profileError } = await updateCurrentUserProfile({
+    avatarUrl: filePath,
+  });
+
+  return {
+    path: filePath,
+    profile: profile || null,
+    error: profileError || null,
+  };
+}
+
+/**
+ * Returns a public URL for an avatar `path` stored in the `avatars` bucket.
+ *
+ * @param {string | null} path - The `avatar_url` stored in `profiles`.
+ * @returns {string | null} - A public URL usable in an <img src={...} /> tag.
+ */
+export function getAvatarPublicUrl(path) {
+  if (!path) return null;
+  const { data } = supabase.storage.from("avatars").getPublicUrl(path);
+  return data?.publicUrl || null;
+}
