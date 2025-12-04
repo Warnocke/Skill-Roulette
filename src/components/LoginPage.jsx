@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { signInWithEmail, signUpWithEmail } from "../lib/dbHelpers";
 import { useAuth } from "../contexts/Auth";
+import Logo from "./Logo";
 import '../styles/LoginPage.css';
 
 export default function LoginPage() {
@@ -42,10 +43,8 @@ export default function LoginPage() {
 
   return (
     <div className="auth-container">
+      <Logo />
       <div className="auth-wrapper">
-        <div className="logo-container">
-          <img src="/elements/SR_logo.png" alt="Skill Roulette Logo" className="auth-logo" />
-        </div>
 
         {mode === "signin" && (
           <div className="auth-box">
