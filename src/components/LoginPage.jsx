@@ -28,7 +28,7 @@ export default function LoginPage() {
     // Save user info in context
     login({ displayName: user.displayName, email: user.email });
     await getCurrentUserProfile();
-    navigate("/feed");   // redirect after login
+    navigate("feed");   // redirect after login
   }
 
   async function handleSignUp(e) {
@@ -43,7 +43,7 @@ export default function LoginPage() {
   if (error) return setError(error.message);
 
   await getCurrentUserProfile();
-  navigate("/feed");   // <-- redirect
+  navigate("feed");   // <-- redirect
 }
 
   return (
