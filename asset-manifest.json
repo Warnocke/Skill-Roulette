@@ -1,15 +1,14 @@
 {
   "files": {
-    "main.css": "/Skill-Roulette/static/css/main.620f56be.css",
-    "main.js": "/Skill-Roulette/static/js/main.ae572ee9.js",
-    "static/js/453.847f6892.chunk.js": "/Skill-Roulette/static/js/453.847f6892.chunk.js",
+    "main.css": "/Skill-Roulette/static/css/main.d26c8e31.css",
+    "main.js": "/Skill-Roulette/static/js/main.9668794d.js",
+    "static/media/SR_logo.png": "/Skill-Roulette/static/media/SR_logo.facd868268d2f00c63f5.png",
     "index.html": "/Skill-Roulette/index.html",
-    "main.620f56be.css.map": "/Skill-Roulette/static/css/main.620f56be.css.map",
-    "main.ae572ee9.js.map": "/Skill-Roulette/static/js/main.ae572ee9.js.map",
-    "453.847f6892.chunk.js.map": "/Skill-Roulette/static/js/453.847f6892.chunk.js.map"
+    "main.d26c8e31.css.map": "/Skill-Roulette/static/css/main.d26c8e31.css.map",
+    "main.9668794d.js.map": "/Skill-Roulette/static/js/main.9668794d.js.map"
   },
   "entrypoints": [
-    "static/css/main.620f56be.css",
-    "static/js/main.ae572ee9.js"
+    "static/css/main.d26c8e31.css",
+    "static/js/main.9668794d.js"
   ]
 }
