@@ -111,3 +111,20 @@
     height: 40px;
   }
 }
+
+.feed-container,
+.posts-container,
+.post,
+.post-content {
+  overflow: visible !important;
+}
+
+.post-image {
+  width: 100%;
+  height: auto;
+  object-fit: contain !important;
+  display: block;
+}
+.post {
+  height: auto !important;
+}
