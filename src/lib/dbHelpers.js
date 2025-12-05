@@ -188,18 +188,35 @@ export async function getCurrentUserProfile() {
   // Step 3: no profile yet -> create one
   const initialProfile = {
     id: user.id, // must match auth.uid()
-    display_name: user.user_metadata?.display_name ?? null,
+    // Ensure display_name is never null to satisfy DB NOT NULL constraint.
+    // Prefer user-provided metadata, fall back to the user's email, then a short id.
+    display_name:
+      user.user_metadata?.display_name ?? user.email ?? `user-${String(user.id).slice(0, 8)}`,
     avatar_url: null,
     bio: null,
   };
 
+  // Use UPSERT to avoid race conditions where a profile may be created
+  // concurrently (which would otherwise raise a duplicate key error).
   const insertResult = await supabase
     .from("profiles")
-    .insert(initialProfile)
+    .upsert(initialProfile, { onConflict: "id" })
     .select("id, display_name, avatar_url, bio, created_at, updated_at")
     .single();
 
   if (insertResult.error) {
+    // If a concurrent insert caused a duplicate-key, try to re-fetch the
+    // existing profile row. This handles the rare race condition gracefully.
+    const msg = String(insertResult.error.message ?? insertResult.error);
+    if (msg.includes("duplicate key") || msg.includes("profiles_pkey")) {
+      const { data: existing, error: fetchErr } = await supabase
+        .from("profiles")
+        .select("id, display_name, avatar_url, bio, created_at, updated_at")
+        .eq("id", user.id)
+        .single();
+      return { profile: existing ?? null, error: fetchErr ?? null };
+    }
+
     return { profile: null, error: insertResult.error };
   }
 
