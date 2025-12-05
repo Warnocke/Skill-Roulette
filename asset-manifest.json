@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/Skill-Roulette/static/css/main.620f56be.css",
-    "main.js": "/Skill-Roulette/static/js/main.afe066c0.js",
+    "main.js": "/Skill-Roulette/static/js/main.ae572ee9.js",
     "static/js/453.847f6892.chunk.js": "/Skill-Roulette/static/js/453.847f6892.chunk.js",
     "index.html": "/Skill-Roulette/index.html",
     "main.620f56be.css.map": "/Skill-Roulette/static/css/main.620f56be.css.map",
-    "main.afe066c0.js.map": "/Skill-Roulette/static/js/main.afe066c0.js.map",
+    "main.ae572ee9.js.map": "/Skill-Roulette/static/js/main.ae572ee9.js.map",
     "453.847f6892.chunk.js.map": "/Skill-Roulette/static/js/453.847f6892.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.620f56be.css",
-    "static/js/main.afe066c0.js"
+    "static/js/main.ae572ee9.js"
   ]
 }
