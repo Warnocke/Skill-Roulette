@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from "react";
 import supabase from "../supabaseClient";
+import {
+  likePost,
+  unlikePost,
+  hasUserLikedPost,
+  getPostLikes,
+} from "../lib/dbHelpers";
+
+console.log("FEED COMPONENT LOADED");
 
 export default function Feed({ dailyPrompt }) {
   const [posts, setPosts] = useState([]);
@@ -74,7 +82,7 @@ export default function Feed({ dailyPrompt }) {
       user_id: user.id,
       content: newPost,
       image_url: imageUrl,
-      prompt_id: prompt_id, // REQUIRED to fix your not-null error
+      prompt_id: prompt_id,
     });
 
     if (error) {
@@ -116,20 +124,75 @@ export default function Feed({ dailyPrompt }) {
         {posts.length === 0 && <p>No posts yet. Be the first!</p>}
 
         {posts.map((post) => (
-          <div key={post.id} className="post-card">
-            <p className="post-user">@{post.profiles?.username || "unknown"}</p>
-            <p className="post-content">{post.content}</p>
-
-            {post.image_url && (
-              <img src={post.image_url} alt="post" className="post-image" />
-            )}
-
-            <p className="post-date">
-              {new Date(post.created_at).toLocaleString()}
-            </p>
-          </div>
+          <PostCard key={post.id} post={post} />
         ))}
       </div>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------
+   PostCard Component (handles likes per post)
+------------------------------------------------------------------- */
+
+function PostCard({ post }) {
+  const [liked, setLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(0);
+
+  useEffect(() => {
+    async function loadLikeState() {
+      // Check if user has liked the post
+      const { hasLiked } = await hasUserLikedPost({ postId: post.id });
+      setLiked(hasLiked);
+
+      // Load number of likes
+      const { count } = await getPostLikes({ postId: post.id });
+      setLikesCount(count);
+    }
+
+    loadLikeState();
+  }, [post.id]);
+
+  async function toggleLike() {
+    if (liked) {
+      await unlikePost({ postId: post.id });
+      setLiked(false);
+      setLikesCount((c) => c - 1);
+    } else {
+      await likePost({ postId: post.id });
+      setLiked(true);
+      setLikesCount((c) => c + 1);
+    }
+  }
+
+  return (
+    <div className="post-card">
+      <p className="post-user">@{post.profiles?.username || "unknown"}</p>
+      <p className="post-content">{post.content}</p>
+
+      {post.image_url && (
+        <img src={post.image_url} alt="post" className="post-image" />
+      )}
+
+      <p className="post-date">
+        {new Date(post.created_at).toLocaleString()}
+      </p>
+
+      {/* Like button */}
+      <button
+        className="like-button"
+        onClick={toggleLike}
+        style={{
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          color: liked ? "red" : "gray",
+          fontSize: "18px",
+          marginTop: "8px",
+        }}
+      >
+        {liked ? "❤️" : "🤍"} {likesCount}
+      </button>
     </div>
   );
 }
