@@ -1,23 +1,30 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { 
-  signInWithEmail, 
-  signUpWithEmail, 
-  getCurrentUserProfile 
+import {
+  signInWithEmail,
+  signUpWithEmail,
+  getCurrentUserProfile,
+  updateCurrentUserProfile
 } from "../lib/dbHelpers";
 import { useAuth } from "../contexts/Auth";
+import supabase from "../supabaseClient";
 import Logo from "./Logo";
-import '../styles/LoginPage.css';
+import "../styles/LoginPage.css";
 
 export default function LoginPage() {
   const { login } = useAuth();
+
   const [mode, setMode] = useState("signin"); // "signin" or "signup"
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [avatarFile, setAvatarFile] = useState(null); // ⭐ NEW
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  /* ---------------------------------------------------------
+     SIGN IN
+  ----------------------------------------------------------*/
   async function handleSignIn(e) {
     e.preventDefault();
     setError("");
@@ -25,25 +32,77 @@ export default function LoginPage() {
     const { user, error } = await signInWithEmail({ email, password });
     if (error) return setError(error.message);
 
-    // Save user info in context
+    // store minimal info in context
     login({ displayName: user.displayName, email: user.email });
+
     await getCurrentUserProfile();
-    navigate("feed");   // redirect after login
+    navigate("feed");
   }
 
+  /* ---------------------------------------------------------
+     SIGN UP WITH PROFILE PICTURE SUPPORT
+  ----------------------------------------------------------*/
   async function handleSignUp(e) {
-    e.preventDefault();
-    setError("");
+  e.preventDefault();
+  setError("");
 
-    const { user, error } = await signUpWithEmail({
-      email,
-      password,
-      displayName
-    });
+  // 1. Create account
+  const { user, error } = await signUpWithEmail({
+    email,
+    password,
+    displayName,
+  });
+
   if (error) return setError(error.message);
 
-  await getCurrentUserProfile();
-  navigate("feed");   // <-- redirect
+  // 2. Explicitly log the user in after signup (fixes your issue)
+  const { user: signedInUser, error: signInError } = await signInWithEmail({
+    email,
+    password,
+  });
+
+  if (signInError) {
+    console.error("Sign-in after signup failed:", signInError);
+    return setError("Account created, but login failed. Try signing in.");
+  }
+
+  // 3. Wait for guaranteed session (now authenticated)
+  const authedUser = signedInUser;
+
+  // 4. Ensure profile exists
+  const { profile } = await getCurrentUserProfile();
+
+  // 5. Upload avatar if provided
+  let avatarUrl = null;
+
+  if (avatarFile) {
+    const fileName = `${authedUser.id}/${Date.now()}_${avatarFile.name}`;
+
+    // Upload to the real bucket ("avatars")
+    const { error: uploadError } = await supabase.storage
+      .from("avatars")
+      .upload(fileName, avatarFile);
+
+    if (uploadError) {
+      console.error("Avatar upload failed:", uploadError);
+    } else {
+      const {
+        data: { publicUrl },
+      } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(fileName);
+
+      avatarUrl = publicUrl;
+    }
+  }
+
+  // 6. Update profile with avatar URL
+  if (avatarUrl) {
+    await updateCurrentUserProfile({ avatarUrl });
+  }
+
+  // 7. Redirect to feed
+  navigate("feed");
 }
 
   return (
@@ -51,6 +110,9 @@ export default function LoginPage() {
       <Logo />
       <div className="auth-wrapper">
 
+        {/* ---------------------------------------------
+            SIGN IN FORM
+        ------------------------------------------------*/}
         {mode === "signin" && (
           <div className="auth-box">
             <h2>Sign In</h2>
@@ -84,6 +146,9 @@ export default function LoginPage() {
           </div>
         )}
 
+        {/* ---------------------------------------------
+            SIGN UP FORM (WITH AVATAR)
+        ------------------------------------------------*/}
         {mode === "signup" && (
           <div className="auth-box">
             <h2>Create Account</h2>
@@ -111,6 +176,14 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+              />
+
+              {/* ⭐ PROFILE PICTURE INPUT */}
+              <label className="file-label">Upload Profile Picture</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setAvatarFile(e.target.files[0])}
               />
 
               {error && <p className="error-text">{error}</p>}
