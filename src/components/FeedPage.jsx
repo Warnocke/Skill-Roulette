@@ -9,6 +9,7 @@ import {
   addComment, 
   deleteComment 
 } from "../lib/dbHelpers";
+import ProfileButton from "./ProfileButton";
 
 
 function PostCard({ post, user, onRefresh }) {
@@ -281,6 +282,7 @@ export default function FeedPage() {
 
   return (
     <div className="feed-container">
+      <ProfileButton />
 
       {/* Daily Challenge Header */}
       <div className="feed-header">
