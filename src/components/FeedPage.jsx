@@ -2,23 +2,29 @@ import React, { useEffect, useState, useCallback } from "react";
 import supabase from "../supabaseClient";
 import { useAuth } from "../contexts/Auth";
 import { getDailyPrompt } from "../helper/getDailyPrompt";
+
+import Logo from "./Logo";
+import ProfileButton from "./ProfileButton";
+
 import '../styles/feed.css';
 import '../styles/post.css';
+
 import { 
   getCommentsForPost, 
   addComment, 
   deleteComment 
 } from "../lib/dbHelpers";
-import ProfileButton from "./ProfileButton";
 
-
-function PostCard({ post, user, onRefresh }) {
+/* -----------------------------------------------------------
+   POST CARD COMPONENT
+----------------------------------------------------------- */
+function PostCard({ post, user, onRefresh, onLike, promptMap }) {
   const [comments, setComments] = useState([]);
   const [loadingComments, setLoadingComments] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [showComments, setShowComments] = useState(false);
 
-  // Load comments when the user expands the comment section
+  // Load comments
   async function loadComments() {
     setLoadingComments(true);
     const { comments, error } = await getCommentsForPost({ postId: post.id });
@@ -30,26 +36,25 @@ function PostCard({ post, user, onRefresh }) {
     e.preventDefault();
     if (!commentText.trim()) return;
 
-    const { comment, error } = await addComment({
+    const { error } = await addComment({
       postId: post.id,
       body: commentText.trim(),
     });
 
     if (!error) {
       setCommentText("");
-      loadComments(); // refresh
+      loadComments();
     }
   }
 
   async function handleDeleteComment(commentId) {
-    const { success, error } = await deleteComment({ commentId });
-    if (!error) loadComments(); // refresh
+    const { error } = await deleteComment({ commentId });
+    if (!error) loadComments();
   }
 
   return (
     <div className="post">
-
-      {/* --- POST CONTENT (your existing code) --- */}
+      {/* POST HEADER */}
       <div className="post-header">
         <img
           src={post.profiles?.avatar_url || "https://placehold.co/40"}
@@ -57,25 +62,47 @@ function PostCard({ post, user, onRefresh }) {
           className="post-avatar"
         />
         <div className="post-user-info">
-          <p>{post.profiles?.display_name}</p>
+          <p>{post.profiles?.display_name || "unknown_user"}</p>
           <p className="post-time">{new Date(post.created_at).toLocaleString()}</p>
         </div>
       </div>
 
+      {/* POST BODY */}
       <div className="post-content">
         {post.caption && <p>{post.caption}</p>}
+
+        {/* PROMPT */}
+        {promptMap[post.prompt_id] && (
+          <p className="post-prompt">
+            <em>Completed: {promptMap[post.prompt_id]}</em>
+          </p>
+        )}
       </div>
 
+      {/* IMAGE */}
       {post.image_url && (
         <img src={post.image_url} className="post-image" alt="proof" />
       )}
 
-      {/* --- LIKE BUTTON (already implemented) --- */}
+      {/* LIKE BUTTON */}
       <div className="like-section">
-        {/* reuse your toggleLike logic */}
+        <button
+          className="like-button"
+          onClick={onLike}
+          style={{
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            color: post.user_liked ? "red" : "gray",
+            fontSize: "20px",
+            marginTop: "8px",
+          }}
+        >
+          {post.user_liked ? "❤️" : "🤍"} {post.likes_count}
+        </button>
       </div>
 
-      {/* --- COMMENTS SECTION --- */}
+      {/* COMMENTS */}
       <div className="comments-section">
         <button
           className="show-comments-btn"
@@ -90,29 +117,30 @@ function PostCard({ post, user, onRefresh }) {
         {showComments && (
           <div className="comments-container">
             {loadingComments ? (
-                <p>Loading comments...</p>
-              ) : comments.length === 0 ? (
-                <p className="no-comments">No comments yet.</p>
-              ) : (
-                comments.map((c) => (
-                  <div key={c.id} className="comment">
-                    <p>
-                      <strong>{c.user?.display_name || "unknown_user"}:</strong> {c.body}
-                    </p>
+              <p>Loading comments...</p>
+            ) : comments.length === 0 ? (
+              <p className="no-comments">No comments yet.</p>
+            ) : (
+              comments.map((c) => (
+                <div key={c.id} className="comment">
+                  <p>
+                    <strong>{c.user?.display_name || "unknown_user"}:</strong>{" "}
+                    {c.body}
+                  </p>
 
-                    {c.user_id === user?.id && (
-                      <button
-                        className="delete-comment"
-                        onClick={() => handleDeleteComment(c.id)}
-                      >
-                        ✖
-                      </button>
-                    )}
-                  </div>
-                ))
-              )}
+                  {c.user_id === user?.id && (
+                    <button
+                      className="delete-comment"
+                      onClick={() => handleDeleteComment(c.id)}
+                    >
+                      ✖
+                    </button>
+                  )}
+                </div>
+              ))
+            )}
 
-            {/* Add a comment */}
+            {/* ADD COMMENT */}
             <form onSubmit={handleAddComment} className="comment-form">
               <input
                 type="text"
@@ -129,12 +157,15 @@ function PostCard({ post, user, onRefresh }) {
   );
 }
 
+/* -----------------------------------------------------------
+   MAIN FEED PAGE
+----------------------------------------------------------- */
 export default function FeedPage() {
-  const { user, loading } = useAuth(); 
+  const { user, loading } = useAuth();
 
   const [prompt, setPrompt] = useState(null);
   const [loadingPrompt, setLoadingPrompt] = useState(true);
-  
+
   const [posts, setPosts] = useState([]);
   const [loadingFeed, setLoadingFeed] = useState(true);
 
@@ -142,7 +173,26 @@ export default function FeedPage() {
   const [imageFile, setImageFile] = useState(null);
   const [loadingPost, setLoadingPost] = useState(false);
 
-  
+  const [promptMap, setPromptMap] = useState({});
+
+  /* Load all prompts into promptMap (frontend-only) */
+  useEffect(() => {
+    async function loadPrompts() {
+      const { data, error } = await supabase
+        .from("prompts")
+        .select("id, prompt_text");
+
+      if (!error && data) {
+        const map = {};
+        data.forEach((p) => (map[p.id] = p.prompt_text));
+        setPromptMap(map);
+      }
+    }
+
+    loadPrompts();
+  }, []);
+
+  /* Load feed posts */
   const fetchPosts = useCallback(async () => {
     setLoadingFeed(true);
 
@@ -166,23 +216,19 @@ export default function FeedPage() {
       return;
     }
 
-    // Transform reaction rows into a usable like system
     const transformed = data.map((post) => {
       const likes_count = post.reactions?.[0]?.count || 0;
-      const user_liked = post.user_reaction?.some((r) => r.user_id === user?.id) || false;
+      const user_liked =
+        post.user_reaction?.some((r) => r.user_id === user?.id) || false;
 
-      return {
-        ...post,
-        likes_count,
-        user_liked
-      };
+      return { ...post, likes_count, user_liked };
     });
 
     setPosts(transformed);
     setLoadingFeed(false);
   }, [user]);
 
-  // Load prompt + feed
+  /* Load today's prompt + feed */
   useEffect(() => {
     async function loadInitial() {
       const todayPrompt = await getDailyPrompt();
@@ -193,8 +239,7 @@ export default function FeedPage() {
     loadInitial();
   }, [fetchPosts]);
 
-
-  // Upload image
+  /* Upload image */
   async function uploadImage(file) {
     if (!file) return null;
 
@@ -217,13 +262,10 @@ export default function FeedPage() {
     return data.publicUrl;
   }
 
-
-  // Post submission
+  /* Create a new post */
   async function handleSubmit(e) {
     e.preventDefault();
-
     if (!postText.trim() || !imageFile) return;
-    if (!user) return;
 
     setLoadingPost(true);
 
@@ -242,95 +284,107 @@ export default function FeedPage() {
 
     setPostText("");
     setImageFile(null);
+
     fetchPosts();
     setLoadingPost(false);
   }
 
-  // ⭐ LIKE / UNLIKE using `reactions`
+  /* Like / Unlike */
   async function toggleLike(post) {
     if (!user) return;
 
     if (post.user_liked) {
-      // Unlike
       await supabase
         .from("reactions")
         .delete()
         .eq("post_id", post.id)
         .eq("user_id", user.id);
     } else {
-      // Like
-      await supabase
-        .from("reactions")
-        .insert({
-          post_id: post.id,
-          user_id: user.id,
-          type: "like"
-        });
+      await supabase.from("reactions").insert({
+        post_id: post.id,
+        user_id: user.id,
+        type: "like",
+      });
     }
 
-    fetchPosts(); // update UI
+    fetchPosts();
   }
 
-  // Loading state
-  if (loading || loadingPrompt) {
-    return <p>Loading...</p>;
-  }
+  /* Loading states */
+  if (loading || loadingPrompt) return <p>Loading...</p>;
+  if (!prompt) return <p>Error loading today's prompt.</p>;
 
-  if (!prompt) {
-    return <p>Error loading today's prompt.</p>;
-  }
-
+  /* -----------------------------------------------------------
+     PAGE UI
+----------------------------------------------------------- */
   return (
-    <div className="feed-container">
-      <ProfileButton />
+    <div className="feed-wrapper">
 
-      {/* Daily Challenge Header */}
-      <div className="feed-header">
-        <div className="challenge-card">
-          <div className="challenge-icon">🎯</div>
-          <h2>Today's Universal Challenge</h2>
-          <p className="challenge-text">{prompt.prompt_text}</p>
-        </div>
+      {/* ⭐ Logo on the top-left */}
+      <div className="feed-topbar">
+          <Logo variant="feed" />
       </div>
 
-      {/* New Post */}
-      <div className="new-post-card">
-        <h3 className="post-form-title">✨ Share Your Proof</h3>
+      {/* ⭐ Centered white feed container */}
+      <div className="feed-container">
 
-        <form onSubmit={handleSubmit} className="new-post-form">
-          <textarea
-            placeholder="Describe your proof..."
-            value={postText}
-            onChange={(e) => setPostText(e.target.value)}
-          />
+        <ProfileButton />
 
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setImageFile(e.target.files[0])}
-          />
-
-          <button disabled={!postText.trim() || !imageFile}>
-            {loadingPost ? "Posting..." : "Post Completion"}
-          </button>
-        </form>
-      </div>
-
-      {/* Community Feed */}
-      <div className="community-feed">
-        <h3 className="feed-title">🌟 Community Feed</h3>
-
-        {loadingFeed ? (
-          <p>Loading posts...</p>
-        ) : (
-          <div className="posts-container">
-            {posts.map((post) => (
-              <PostCard key={post.id} post={post} user={user} onRefresh={fetchPosts} />
-            ))}
+        {/* Daily Challenge */}
+        <div className="feed-header">
+          <div className="challenge-card">
+            <div className="challenge-icon">🎯</div>
+            <h2>Today's Universal Challenge</h2>
+            <p className="challenge-text">{prompt.prompt_text}</p>
           </div>
-        )}
-      </div>
+        </div>
 
+        {/* New Post */}
+        <div className="new-post-card">
+          <h3 className="post-form-title">✨ Share Your Proof</h3>
+
+          <form onSubmit={handleSubmit} className="new-post-form">
+            <textarea
+              placeholder="Describe your proof..."
+              value={postText}
+              onChange={(e) => setPostText(e.target.value)}
+            />
+
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setImageFile(e.target.files[0])}
+            />
+
+            <button disabled={!postText.trim() || !imageFile}>
+              {loadingPost ? "Posting..." : "Post Completion"}
+            </button>
+          </form>
+        </div>
+
+        {/* Feed */}
+        <div className="community-feed">
+          <h3 className="feed-title">🌟 Community Feed</h3>
+
+          {loadingFeed ? (
+            <p>Loading posts...</p>
+          ) : (
+            <div className="posts-container">
+              {posts.map((post) => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  user={user}
+                  onRefresh={fetchPosts}
+                  onLike={() => toggleLike(post)}
+                  promptMap={promptMap}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+        
+      </div>
     </div>
   );
 }

@@ -27,3 +27,15 @@
     top: -60px;
   }
 }
+
+/* FEED PAGE LOGO (normal flow, not absolute) */
+.feed-logo-container {
+  position: static !important;
+  width: 140px !important;
+  height: auto !important;
+  transform: none !important;
+  left: auto !important;
+  top: auto !important;
+  margin-bottom: 10px;
+  pointer-events: auto;
+}
